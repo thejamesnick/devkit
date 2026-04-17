@@ -69,29 +69,33 @@ irm https://raw.githubusercontent.com/thejamesnick/devkit/main/scripts/install.p
 Each step has a named key. On completion, that key is written to `~/.devkit_state`. On re-run, completed steps are skipped automatically.
 
 ```
-1.  [os_detect]       Detect OS (macOS / Ubuntu / Debian / Fedora / Windows)
-                      → Unsupported distro: print clear message + exit cleanly
-2.  [greet]           "Hey! Lets set up your machine for development."
-3.  [get_name]        Ask: Whats your name?
-4.  [pkg_manager]     Install package manager (Homebrew / apt / winget)
-                      → Everything else depends on this — retry up to 3x on failure
-5.  [core_tools]      Install core tools (always — see below)
-                      → Each tool is its own sub-step (e.g. core_git, core_nvm, core_pyenv)
-                      → Shell rc patching for nvm + pyenv happens here
-6.  [dev_type]        Ask: What kind of dev work do you do?
-                      [ 1 ] Web / Frontend
-                      [ 2 ] Backend / APIs
-                      [ 3 ] Mobile (React Native / Flutter)
-                      [ 4 ] Data / ML / AI  ⚡
-                      [ 5 ] DevOps / Cloud
-                      [ 6 ] General / Not sure yet
-7.  [stack_tools]     Install stack tools based on choice
-8.  [github]          Ask: Do you have a GitHub account? (y/N)
-                      → yes: run gh auth login
-                      → no:  skip, gh is installed and ready for later
-9.  [ssh_key]         Ask: Want to generate an SSH key? (y/N)
-10. [vscode]          Ask: Want to install VS Code? (y/N)  ← optional, asked last, default NO
-11. [done]            Print summary — what was installed, next steps
+1.  [os_detect]          Detect OS (macOS / Ubuntu / Debian / Fedora / Windows)
+                          → Unsupported distro: print clear message + exit cleanly
+2.  [greet]              "Hey! Let's set up your machine for development."
+3.  [get_name]           Ask: What's your name?
+4.  [pkg_manager]        Install package manager (Homebrew / apt / winget)
+                          → Everything else depends on this — retry up to 3x on failure
+5.  [core_tools]         Install core tools (always — see below)
+                          → Each tool is its own sub-step (e.g. core_git, core_nvm, core_pyenv)
+                          → Shell rc patching for nvm + pyenv happens here
+6.  [dev_type]           Ask: What kind of dev work do you do?
+                          [ 1 ] Web / Frontend
+                          [ 2 ] Backend / APIs
+                          [ 3 ] Mobile (React Native / Flutter)
+                          [ 4 ] Data / ML / AI  ⚡
+                          [ 5 ] DevOps / Cloud
+                          [ 6 ] General / Not sure yet
+7.  [stack_tools]        Install stack tools based on choice
+8.  [github]             Ask: Do you have a GitHub account? (y/N)
+                          → yes: run gh auth login
+                          → no:  skip, gh is installed and ready for later
+9.  [ssh_key]            Ask: Want to generate an SSH key? (y/N)
+10. [vscode]             Ask: Want to install VS Code? (y/N)  ← optional, default NO
+11. [ai_coding_tools]    Ask: Install Claude Code? (y/N) — then: Install Codex CLI? (y/N)
+                          → Both are optional and prompted independently
+                          → Installed as npm globals (requires node from step 5)
+                          → Failures warn rather than exit — these are extras, not blockers
+12. [done]               Print summary — what was installed, next steps
 ```
 
 ---
@@ -135,6 +139,12 @@ Each step has a named key. On completion, that key is written to `~/.devkit_stat
 ### General
 - `docker`
 - Nothing else — core already covers node + python
+
+### AI Coding Assistants (optional — everyone gets asked)
+- `@anthropic-ai/claude-code` (via npm) — run `claude` in any project
+- `@openai/codex` (via npm) — run `codex` in any project
+- Each is prompted independently — install one, both, or neither
+- Failures warn rather than exit — these are extras, not blockers
 
 ---
 
@@ -193,22 +203,24 @@ This is a first-class requirement, not an afterthought.
 
 ## ✅ Phase 1 Scope
 
-- [ ] macOS install script
-- [ ] Linux install script (Ubuntu/Debian + Fedora/RHEL)
-- [ ] Windows PowerShell script
-- [ ] OS detection (with clean exit on unsupported distro)
-- [ ] Package manager install (first step, always — retry 3x on network failure)
-- [ ] Core tools: git, gh, curl, nvm→node, yarn, pnpm, pyenv→python, pip
-- [ ] Shell rc patching for nvm + pyenv (bash + zsh, no duplicates)
-- [ ] Dev type selection (6 options)
-- [ ] Stack-specific tools install
-- [ ] GitHub account check → gh auth login or skip
-- [ ] SSH key generation (optional)
-- [ ] VS Code install (optional, last, default NO)
-- [ ] Pretty coloured output throughout
-- [ ] Resume / retry system (state file, per-step tracking)
-- [ ] `--reset` flag to wipe state and start fresh
-- [ ] Summary at the end
+- [x] macOS install script
+- [x] Linux install script (Ubuntu/Debian + Fedora/RHEL)
+- [x] Windows PowerShell script
+- [x] OS detection (with clean exit on unsupported distro)
+- [x] Package manager install (first step, always — retry 3x on network failure)
+- [x] Core tools: git, gh, curl, nvm→node, yarn, pnpm, pyenv→python, pip
+- [x] Shell rc patching for nvm + pyenv (bash + zsh, no duplicates)
+- [x] Dev type selection (6 options)
+- [x] Stack-specific tools install
+- [x] GitHub account check → gh auth login or skip
+- [x] SSH key generation (optional)
+- [x] VS Code install (optional, last, default NO)
+- [x] AI coding assistant install — Claude Code + Codex CLI (optional, prompted individually)
+- [x] Pretty coloured output throughout
+- [x] Resume / retry system (state file, per-step tracking)
+- [x] `--reset` flag to wipe state and start fresh
+- [x] Download progress bar on file downloads
+- [x] Summary at the end
 
 ## ❌ Out of Scope (Phase 1)
 
@@ -219,4 +231,3 @@ This is a first-class requirement, not an afterthought.
 - No plugin system
 
 These are Phase 2+ ideas. Ship Phase 1 first. 🔥
-SPECEOF

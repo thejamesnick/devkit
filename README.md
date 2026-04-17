@@ -32,6 +32,8 @@ Walks you through a simple setup flow:
 4. Installs core tools (git, gh, nvm → node, pyenv → python, yarn, pnpm, curl)
 5. Asks what kind of dev you are and installs the right stack
 6. Optionally sets up GitHub auth, SSH key, and VS Code
+7. Optionally installs AI coding assistants (Claude Code, Codex CLI)
+8. Prints a summary of everything installed and what to do next
 
 ---
 
@@ -43,8 +45,14 @@ Walks you through a simple setup flow:
 | 2 | Backend / APIs | docker, docker-compose |
 | 3 | Mobile | java, Xcode CLI (mac), Android Studio instructions |
 | 4 | Data / ML / AI | jupyter, numpy, pandas, scikit-learn, optional torch + openai/langchain |
-| 5 | DevOps / Cloud | docker, kubectl, cloud CLI of choice |
+| 5 | DevOps / Cloud | docker, kubectl, cloud CLI of choice (AWS / GCP / Azure) |
 | 6 | General | docker |
+
+After your dev type, everyone is optionally asked about **AI coding assistants**:
+- **Claude Code** (`claude`) — Anthropic's terminal-native AI pair programmer
+- **OpenAI Codex CLI** (`codex`) — OpenAI's agentic coding tool
+
+Both are npm globals, installed in about 30 seconds, and work inside any project folder.
 
 ---
 
@@ -65,6 +73,7 @@ bash scripts/install.sh --reset
 - Never stores or transmits user data
 - All installs from official sources only
 - Prints every action before doing it — no silent installs
+- Shows a progress bar on file downloads so you always know something is happening
 - Safe to run multiple times
 
 ---
@@ -92,4 +101,6 @@ devkit/
 
 ## Phase
 
-Currently in **Phase 1** — shell scripts only, no GUI, no dotfiles, no cloud sync. Ship fast. 🔥
+**Phase 1 complete** — shell scripts for macOS, Linux, and Windows. All steps implemented, all platforms tested. 🔥
+
+**Phase 2 ideas** — dotfiles management, team profiles, web UI, plugin system, cloud sync.

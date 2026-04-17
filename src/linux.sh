@@ -79,8 +79,7 @@ install_core_tools() {
         sudo apt-get install -y gh
       else
         sudo dnf install -y 'dnf-command(config-manager)' 2>/dev/null || true
-        sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo 2>/dev/null || \
-          sudo dnf install -y gh
+        sudo dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo 2>/dev/null || true
         sudo dnf install -y gh
       fi
       success "gh installed"
@@ -361,9 +360,9 @@ _install_awscli() {
   fi
   info "Installing AWS CLI..."
   safe_curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" "/tmp/dk-awscliv2.zip"
-  if cd /tmp && unzip -q dk-awscliv2.zip && sudo ./aws/install; then
-    cd - > /dev/null || true
-  fi
+  unzip -q /tmp/dk-awscliv2.zip -d /tmp/dk-awscli
+  sudo /tmp/dk-awscli/aws/install
+  rm -rf /tmp/dk-awscliv2.zip /tmp/dk-awscli
   success "AWS CLI installed"
   INSTALLED_TOOLS+=("aws-cli")
 }
