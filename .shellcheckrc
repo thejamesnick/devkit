@@ -1,0 +1,2 @@
+# Resolve sourced files relative to the script being checked
+source-path=SCRIPTDIR
