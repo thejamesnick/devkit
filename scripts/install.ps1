@@ -101,9 +101,14 @@ if (-not (Test-StepDone "core_yarn")) {
   if (Test-Cmd yarn) {
     Write-DkSuccess "yarn already installed"
   } else {
-    npm install -g yarn
-    Write-DkSuccess "yarn installed"
-    $global:InstalledTools += "yarn"
+    Write-DkInfo "Installing yarn..."
+    if (npm install -g yarn) {
+      Write-DkSuccess "yarn installed"
+      $global:InstalledTools += "yarn"
+    } else {
+      Write-DkError "Failed to install yarn — run the script again."
+      exit 1
+    }
   }
   Mark-Done "core_yarn"
 }
@@ -112,9 +117,14 @@ if (-not (Test-StepDone "core_pnpm")) {
   if (Test-Cmd pnpm) {
     Write-DkSuccess "pnpm already installed"
   } else {
-    npm install -g pnpm
-    Write-DkSuccess "pnpm installed"
-    $global:InstalledTools += "pnpm"
+    Write-DkInfo "Installing pnpm..."
+    if (npm install -g pnpm) {
+      Write-DkSuccess "pnpm installed"
+      $global:InstalledTools += "pnpm"
+    } else {
+      Write-DkError "Failed to install pnpm — run the script again."
+      exit 1
+    }
   }
   Mark-Done "core_pnpm"
 }
@@ -206,10 +216,15 @@ if (-not (Test-StepDone "stack_tools")) {
       Write-DkInfo  "-> Download: https://developer.android.com/studio"
     }
     "data" {
-      pip install --upgrade pip
-      pip install jupyter numpy pandas matplotlib scikit-learn virtualenv ipykernel
-      Write-DkSuccess "Core data tools installed"
-      $global:InstalledTools += @("jupyter", "numpy", "pandas", "scikit-learn")
+      Write-DkInfo "Installing data / ML / AI tools via pip..."
+      $pipOk = (pip install --upgrade pip) -and (pip install jupyter numpy pandas matplotlib scikit-learn virtualenv ipykernel)
+      if ($pipOk) {
+        Write-DkSuccess "Core data tools installed"
+        $global:InstalledTools += @("jupyter", "numpy", "pandas", "scikit-learn")
+      } else {
+        Write-DkError "Failed to install data tools via pip — check your Python setup and run again."
+        exit 1
+      }
 
       $dlAns = Read-Host "  ? Install deep learning tools (torch CPU build)? (y/N)"
       if ($dlAns -match "^[Yy]$") {

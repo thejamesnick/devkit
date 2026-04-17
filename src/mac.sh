@@ -115,9 +115,13 @@ install_core_tools() {
       success "yarn already installed"
     else
       info "Installing yarn..."
-      npm install -g yarn
-      success "yarn installed"
-      INSTALLED_TOOLS+=("yarn")
+      if npm install -g yarn; then
+        success "yarn installed"
+        INSTALLED_TOOLS+=("yarn")
+      else
+        error "Failed to install yarn — run the script again."
+        exit 1
+      fi
     fi
     mark_done "core_yarn"
   fi
@@ -128,9 +132,13 @@ install_core_tools() {
       success "pnpm already installed"
     else
       info "Installing pnpm..."
-      npm install -g pnpm
-      success "pnpm installed"
-      INSTALLED_TOOLS+=("pnpm")
+      if npm install -g pnpm; then
+        success "pnpm installed"
+        INSTALLED_TOOLS+=("pnpm")
+      else
+        error "Failed to install pnpm — run the script again."
+        exit 1
+      fi
     fi
     mark_done "core_pnpm"
   fi
@@ -231,10 +239,14 @@ install_stack_tools() {
 
     data)
       info "Installing data / ML / AI tools via pip..."
-      pip install --upgrade pip
-      pip install jupyter numpy pandas matplotlib scikit-learn virtualenv ipykernel
-      success "Core data tools installed"
-      INSTALLED_TOOLS+=("jupyter" "numpy" "pandas" "scikit-learn")
+      if pip install --upgrade pip && \
+         pip install jupyter numpy pandas matplotlib scikit-learn virtualenv ipykernel; then
+        success "Core data tools installed"
+        INSTALLED_TOOLS+=("jupyter" "numpy" "pandas" "scikit-learn")
+      else
+        error "Failed to install data tools via pip — check your Python setup and run again."
+        exit 1
+      fi
 
       ask "Install deep learning tools (torch CPU build)? (y/N):"
       read -r _dl_ans
