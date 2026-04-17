@@ -43,8 +43,11 @@ safe_curl() {
   local url="$1"
   local out="${2:-}"
   if [ -n "$out" ]; then
-    curl -fsSL --retry 3 --retry-delay 5 "$url" -o "$out"
+    # File download — show a clean progress bar so the user can see activity
+    curl -fL --retry 3 --retry-delay 5 --progress-bar "$url" -o "$out"
   else
+    # Script fetch (output piped to bash) — stdout must be the raw script,
+    # so keep silent mode; callers already print an info line before this call
     curl -fsSL --retry 3 --retry-delay 5 "$url"
   fi
 }
