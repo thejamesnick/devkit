@@ -109,6 +109,7 @@ function Print-Summary {
   Write-Host "    -> Restart your terminal for all tools to load"
   Write-Host "    -> Run 'gh auth login' to authenticate with GitHub"
   Write-Host "    -> Run 'nvm use lts' to activate Node.js"
+  Write-Host "    -> Run 'claude' or 'codex' inside a project to start coding with AI"
   Write-Host ""
   Write-Host "  State file: $env:USERPROFILE\.devkit_state" -ForegroundColor Cyan
   Write-Host "  To reset and start fresh: .\scripts\install.ps1 --reset"

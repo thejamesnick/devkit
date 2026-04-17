@@ -77,6 +77,58 @@ patch_rc() {
   fi
 }
 
+# ── AI coding assistant installers ─────────────────────────────────────────
+# Both tools are npm globals — identical install on macOS, Linux, and Windows.
+install_ai_coding_tools() {
+  header "AI coding assistants (optional)"
+  printf '    Claude Code and OpenAI Codex are terminal-native AI coding tools.\n'
+  printf '    They work inside your projects and understand your code.\n\n'
+
+  # Claude Code
+  if ! step_done "ai_claude_code"; then
+    ask "Install Claude Code (Anthropic)? (y/N):"
+    read -r _claude_ans
+    if [[ "$_claude_ans" =~ ^[Yy]$ ]]; then
+      if has claude; then
+        success "Claude Code already installed"
+      else
+        info "Installing Claude Code..."
+        if npm install -g @anthropic-ai/claude-code; then
+          success "Claude Code installed — run 'claude' in any project folder"
+          INSTALLED_TOOLS+=("claude-code")
+        else
+          warn "Claude Code install failed — run 'npm install -g @anthropic-ai/claude-code' manually later."
+        fi
+      fi
+    else
+      info "Skipping Claude Code."
+    fi
+    mark_done "ai_claude_code"
+  fi
+
+  # OpenAI Codex
+  if ! step_done "ai_codex"; then
+    ask "Install OpenAI Codex CLI? (y/N):"
+    read -r _codex_ans
+    if [[ "$_codex_ans" =~ ^[Yy]$ ]]; then
+      if has codex; then
+        success "Codex CLI already installed"
+      else
+        info "Installing OpenAI Codex CLI..."
+        if npm install -g @openai/codex; then
+          success "Codex CLI installed — run 'codex' in any project folder"
+          INSTALLED_TOOLS+=("codex-cli")
+        else
+          warn "Codex CLI install failed — run 'npm install -g @openai/codex' manually later."
+        fi
+      fi
+    else
+      info "Skipping OpenAI Codex CLI."
+    fi
+    mark_done "ai_codex"
+  fi
+}
+
 # ── Installed tools tracker (populated by platform scripts) ────────────────
 INSTALLED_TOOLS=()
 
@@ -99,6 +151,7 @@ print_summary() {
   printf '    → Restart your terminal (or source your shell rc) for all tools to load\n'
   printf '    → Run %s to authenticate with GitHub\n' "${BOLD}gh auth login${RESET}"
   printf '    → Run %s to activate Node.js\n' "${BOLD}nvm use --lts${RESET}"
+  printf '    → Run %s or %s inside a project to start coding with AI\n' "${BOLD}claude${RESET}" "${BOLD}codex${RESET}"
   printf '\n%s ~/.devkit_state\n' "${CYAN}  State file:${RESET}"
   printf '  To reset and start fresh: %s\n\n' "${BOLD}bash scripts/install.sh --reset${RESET}"
 }

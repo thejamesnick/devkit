@@ -197,6 +197,12 @@ if ! step_done "vscode"; then
   mark_done "vscode"
 fi
 
+# ── Step: ai_coding_tools ───────────────────────────────────────────────────
+if ! step_done "ai_coding_tools"; then
+  install_ai_coding_tools
+  mark_done "ai_coding_tools"
+fi
+
 # ── Step: done ──────────────────────────────────────────────────────────────
 if ! step_done "done"; then
   print_summary

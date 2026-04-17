@@ -310,6 +310,58 @@ if (-not (Test-StepDone "vscode")) {
   Mark-Done "vscode"
 }
 
+# ── Step: ai_coding_tools ─────────────────────────────────────────────────
+if (-not (Test-StepDone "ai_coding_tools")) {
+  Write-DkHeader "AI coding assistants (optional)"
+  Write-Host "    Claude Code and OpenAI Codex are terminal-native AI coding tools."
+  Write-Host "    They work inside your projects and understand your code."
+  Write-Host ""
+
+  # Claude Code
+  if (-not (Test-StepDone "ai_claude_code")) {
+    $claudeAns = Read-Host "  ? Install Claude Code (Anthropic)? (y/N)"
+    if ($claudeAns -match "^[Yy]$") {
+      if (Test-Cmd claude) {
+        Write-DkSuccess "Claude Code already installed"
+      } else {
+        Write-DkInfo "Installing Claude Code..."
+        if (npm install -g @anthropic-ai/claude-code) {
+          Write-DkSuccess "Claude Code installed — run 'claude' in any project folder"
+          $global:InstalledTools += "claude-code"
+        } else {
+          Write-DkWarn "Claude Code install failed — run 'npm install -g @anthropic-ai/claude-code' manually later."
+        }
+      }
+    } else {
+      Write-DkInfo "Skipping Claude Code."
+    }
+    Mark-Done "ai_claude_code"
+  }
+
+  # OpenAI Codex
+  if (-not (Test-StepDone "ai_codex")) {
+    $codexAns = Read-Host "  ? Install OpenAI Codex CLI? (y/N)"
+    if ($codexAns -match "^[Yy]$") {
+      if (Test-Cmd codex) {
+        Write-DkSuccess "Codex CLI already installed"
+      } else {
+        Write-DkInfo "Installing OpenAI Codex CLI..."
+        if (npm install -g @openai/codex) {
+          Write-DkSuccess "Codex CLI installed — run 'codex' in any project folder"
+          $global:InstalledTools += "codex-cli"
+        } else {
+          Write-DkWarn "Codex CLI install failed — run 'npm install -g @openai/codex' manually later."
+        }
+      }
+    } else {
+      Write-DkInfo "Skipping OpenAI Codex CLI."
+    }
+    Mark-Done "ai_codex"
+  }
+
+  Mark-Done "ai_coding_tools"
+}
+
 # ── Step: done ────────────────────────────────────────────────────────────
 if (-not (Test-StepDone "done")) {
   Print-Summary
