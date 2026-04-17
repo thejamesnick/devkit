@@ -1,0 +1,46 @@
+============================================================
+devkit — TODO
+============================================================
+
+[ ] scripts/install.sh         macOS + Linux entry point
+[ ] scripts/install.ps1        Windows entry point
+[ ] src/common.sh              Shared bash helpers, colours, state functions
+[ ] src/common.ps1             Shared PowerShell helpers
+[ ] src/mac.sh                 macOS-specific installs
+[ ] src/linux.sh               Linux-specific installs (Ubuntu/Debian + Fedora)
+
+------------------------------------------------------------
+FLOW STEPS
+------------------------------------------------------------
+
+[ ] os_detect         Detect OS, exit cleanly on unsupported
+[ ] greet             Welcome message
+[ ] get_name          Ask for name
+[ ] pkg_manager       Install package manager (retry 3x)
+[ ] core_tools        git, gh, curl, nvm->node, yarn, pnpm, pyenv->python, pip
+[ ] shell_rc_patch    Patch .bashrc / .zshrc for nvm + pyenv (no duplicates)
+[ ] dev_type          Ask what kind of dev (6 options)
+[ ] stack_tools       Install stack-specific tools
+[ ] github            gh auth login or skip
+[ ] ssh_key           Generate SSH key (optional)
+[ ] vscode            Install VS Code (optional, default NO)
+[ ] done              Print summary + next steps
+
+------------------------------------------------------------
+EXTRAS
+------------------------------------------------------------
+
+[ ] --reset flag      Wipe ~/.devkit_state and start fresh
+[ ] Coloured output   Throughout, all platforms
+[ ] Retry on network  All curl/wget calls use --retry 3 --retry-delay 5
+[ ] Never run as root Warn + exit if sudo detected
+
+------------------------------------------------------------
+DONE
+------------------------------------------------------------
+
+[x] SPEC.md
+[x] STACK.md
+[x] README.md
+[x] HACKLEARN.md
+[x] TODO.txt
