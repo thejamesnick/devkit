@@ -70,6 +70,7 @@ install_core_tools() {
     else
       info "Installing GitHub CLI..."
       if [[ "$PKG_MANAGER" == "apt" ]]; then
+        sudo apt-get install -y ca-certificates
         safe_curl "https://cli.github.com/packages/githubcli-archive-keyring.gpg" "/tmp/dk-gh-keyring.gpg"
         sudo dd if=/tmp/dk-gh-keyring.gpg of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
         sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
@@ -339,6 +340,8 @@ _install_kubectl() {
   fi
   info "Installing kubectl..."
   if [[ "$PKG_MANAGER" == "apt" ]]; then
+    sudo apt-get install -y apt-transport-https ca-certificates gnupg
+    sudo install -m 0755 -d /etc/apt/keyrings
     safe_curl "https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key" "/tmp/dk-k8s.key"
     sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/dk-k8s.key
     echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /' \
@@ -359,6 +362,14 @@ _install_awscli() {
     return 0
   fi
   info "Installing AWS CLI..."
+  if ! has unzip; then
+    info "Installing unzip..."
+    if [[ "$PKG_MANAGER" == "apt" ]]; then
+      sudo apt-get install -y unzip
+    else
+      sudo dnf install -y unzip
+    fi
+  fi
   safe_curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" "/tmp/dk-awscliv2.zip"
   unzip -q /tmp/dk-awscliv2.zip -d /tmp/dk-awscli
   sudo /tmp/dk-awscli/aws/install
@@ -399,6 +410,7 @@ install_vscode() {
   fi
   info "Installing VS Code..."
   if [[ "$PKG_MANAGER" == "apt" ]]; then
+    sudo install -m 0755 -d /etc/apt/keyrings
     safe_curl "https://packages.microsoft.com/keys/microsoft.asc" "/tmp/dk-ms.asc"
     sudo gpg --dearmor -o /etc/apt/keyrings/packages.microsoft.gpg /tmp/dk-ms.asc
     echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] \

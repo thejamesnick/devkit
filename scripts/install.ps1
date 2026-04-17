@@ -7,10 +7,25 @@
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+# ── Resolve script directory (handles both local run and irm | iex) ─────────
+# When piped via  irm ... | iex  the script has no file path on disk, so
+# $MyInvocation.MyCommand.Path is empty.  In that case download common.ps1
+# from the same GitHub tree so the rest of the script can proceed.
+$ScriptDir  = if ($MyInvocation.MyCommand.Path) {
+  Split-Path -Parent $MyInvocation.MyCommand.Path
+} else { $null }
 
-# Load shared helpers
-. "$ScriptDir\..\src\common.ps1"
+$commonPath = if ($ScriptDir) { Join-Path $ScriptDir "..\src\common.ps1" } else { $null }
+
+if ($commonPath -and (Test-Path $commonPath)) {
+  . $commonPath
+} else {
+  $commonTmp = Join-Path $env:TEMP "devkit-common.ps1"
+  Write-Host "  -> Fetching devkit helpers..." -ForegroundColor Cyan
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/thejamesnick/devkit/main/src/common.ps1" `
+    -OutFile $commonTmp -UseBasicParsing
+  . $commonTmp
+}
 
 # ── --reset flag ──────────────────────────────────────────────────────────
 if ($args -contains "--reset") {
@@ -88,10 +103,21 @@ if (-not (Test-StepDone "core_node")) {
     Write-DkSuccess "node already installed"
   } else {
     Write-DkInfo "Installing Node.js LTS via nvm..."
+    Update-SessionPath
     nvm install lts
+    if ($LASTEXITCODE -ne 0) {
+      Write-DkError "Failed to install Node.js via nvm — run the script again."
+      exit 1
+    }
     nvm use lts
-    Write-DkSuccess "Node.js LTS installed"
+    if ($LASTEXITCODE -ne 0) {
+      Write-DkWarn "'nvm use lts' failed — this sometimes requires running as Administrator once."
+      Write-DkWarn "Open PowerShell as Admin and run: nvm use lts"
+    } else {
+      Write-DkSuccess "Node.js LTS installed"
+    }
     $global:InstalledTools += "node"
+    Update-SessionPath
   }
   Mark-Done "core_node"
 }
@@ -102,7 +128,8 @@ if (-not (Test-StepDone "core_yarn")) {
     Write-DkSuccess "yarn already installed"
   } else {
     Write-DkInfo "Installing yarn..."
-    if (npm install -g yarn) {
+    npm install -g yarn
+    if ($LASTEXITCODE -eq 0) {
       Write-DkSuccess "yarn installed"
       $global:InstalledTools += "yarn"
     } else {
@@ -118,7 +145,8 @@ if (-not (Test-StepDone "core_pnpm")) {
     Write-DkSuccess "pnpm already installed"
   } else {
     Write-DkInfo "Installing pnpm..."
-    if (npm install -g pnpm) {
+    npm install -g pnpm
+    if ($LASTEXITCODE -eq 0) {
       Write-DkSuccess "pnpm installed"
       $global:InstalledTools += "pnpm"
     } else {
@@ -217,8 +245,13 @@ if (-not (Test-StepDone "stack_tools")) {
     }
     "data" {
       Write-DkInfo "Installing data / ML / AI tools via pip..."
-      $pipOk = (pip install --upgrade pip) -and (pip install jupyter numpy pandas matplotlib scikit-learn virtualenv ipykernel)
-      if ($pipOk) {
+      pip install --upgrade pip
+      if ($LASTEXITCODE -ne 0) {
+        Write-DkError "Failed to upgrade pip — check your Python setup and run again."
+        exit 1
+      }
+      pip install jupyter numpy pandas matplotlib scikit-learn virtualenv ipykernel
+      if ($LASTEXITCODE -eq 0) {
         Write-DkSuccess "Core data tools installed"
         $global:InstalledTools += @("jupyter", "numpy", "pandas", "scikit-learn")
       } else {
@@ -283,7 +316,7 @@ if (-not (Test-StepDone "ssh_key")) {
     if (-not (Test-Path $sshDir)) { New-Item -ItemType Directory -Path $sshDir | Out-Null }
     $sshKey = "$sshDir\id_ed25519"
     if (-not (Test-Path $sshKey)) {
-      ssh-keygen -t ed25519 -C $sshEmail -f $sshKey -N '""'
+      ssh-keygen -t ed25519 -C $sshEmail -f $sshKey -N ""
       Write-DkSuccess "SSH key generated at $sshKey"
     } else {
       Write-DkSuccess "SSH key already exists at $sshKey"
@@ -325,7 +358,8 @@ if (-not (Test-StepDone "ai_coding_tools")) {
         Write-DkSuccess "Claude Code already installed"
       } else {
         Write-DkInfo "Installing Claude Code..."
-        if (npm install -g @anthropic-ai/claude-code) {
+        npm install -g @anthropic-ai/claude-code
+        if ($LASTEXITCODE -eq 0) {
           Write-DkSuccess "Claude Code installed — run 'claude' in any project folder"
           $global:InstalledTools += "claude-code"
         } else {
@@ -346,7 +380,8 @@ if (-not (Test-StepDone "ai_coding_tools")) {
         Write-DkSuccess "Codex CLI already installed"
       } else {
         Write-DkInfo "Installing OpenAI Codex CLI..."
-        if (npm install -g @openai/codex) {
+        npm install -g @openai/codex
+        if ($LASTEXITCODE -eq 0) {
           Write-DkSuccess "Codex CLI installed — run 'codex' in any project folder"
           $global:InstalledTools += "codex-cli"
         } else {
