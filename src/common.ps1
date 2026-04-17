@@ -64,6 +64,15 @@ function Test-Cmd {
   return [bool](Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
+# ── Refresh PATH from machine + user environment variables ──────────────────
+# Call this after winget/installer tools add new PATH entries so they are
+# visible in the current session without requiring a terminal restart.
+function Update-SessionPath {
+  $machinePath = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::Machine)
+  $userPath    = [System.Environment]::GetEnvironmentVariable("Path", [System.EnvironmentVariableTarget]::User)
+  $env:PATH    = "$machinePath;$userPath"
+}
+
 # ── winget install helper ───────────────────────────────────────────────────
 function Install-WithWinget {
   param(
@@ -81,6 +90,7 @@ function Install-WithWinget {
     winget install --id $Id --silent --accept-source-agreements --accept-package-agreements
     Write-DkSuccess "$Label installed"
     $global:InstalledTools += $Label
+    Update-SessionPath
   } catch {
     Write-DkError "Failed to install $Label — you can install it manually."
   }
