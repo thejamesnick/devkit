@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 # common.sh — shared helpers, colours, state management
 
@@ -11,12 +10,14 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 RESET='\033[0m'
 
-info()    { printf "${CYAN}  →${RESET} %s\n" "$1"; }
-success() { printf "${GREEN}  ✓${RESET} %s\n" "$1"; }
-warn()    { printf "${YELLOW}  ⚠${RESET} %s\n" "$1"; }
-error()   { printf "${RED}  ✗${RESET} %s\n" "$1"; }
-header()  { printf "\n${BOLD}${BLUE}▶ %s${RESET}\n" "$1"; }
-ask()     { printf "${YELLOW}  ?${RESET} %s " "$1"; }
+# Each helper keeps user content in %s to avoid SC2059 warnings.
+# The ANSI prefix/suffix are safe constants passed as arguments.
+info()    { printf '%s %s\n'   "${CYAN}  →${RESET}"   "$1"; }
+success() { printf '%s %s\n'   "${GREEN}  ✓${RESET}"  "$1"; }
+warn()    { printf '%s %s\n'   "${YELLOW}  ⚠${RESET}" "$1"; }
+error()   { printf '%s %s\n'   "${RED}  ✗${RESET}"    "$1"; }
+header()  { printf '\n%s %s%s\n' "${BOLD}${BLUE}▶" "$1" "${RESET}"; }
+ask()     { printf '%s %s '    "${YELLOW}  ?${RESET}"  "$1"; }
 
 # ── State file ─────────────────────────────────────────────────────────────
 STATE_FILE="$HOME/.devkit_state"
@@ -26,7 +27,10 @@ step_done() {
 }
 
 mark_done() {
-  echo "$1" >> "$STATE_FILE"
+  # Only write if not already present (idempotent)
+  if ! grep -qx "$1" "$STATE_FILE" 2>/dev/null; then
+    echo "$1" >> "$STATE_FILE"
+  fi
 }
 
 reset_state() {
@@ -37,10 +41,13 @@ reset_state() {
 # ── Safe curl with retries ──────────────────────────────────────────────────
 safe_curl() {
   local url="$1"
-  local out="$2"
+  local out="${2:-}"
   if [ -n "$out" ]; then
-    curl -fsSL --retry 3 --retry-delay 5 "$url" -o "$out"
+    # File download — show a clean progress bar so the user can see activity
+    curl -fL --retry 3 --retry-delay 5 --progress-bar "$url" -o "$out"
   else
+    # Script fetch (output piped to bash) — stdout must be the raw script,
+    # so keep silent mode; callers already print an info line before this call
     curl -fsSL --retry 3 --retry-delay 5 "$url"
   fi
 }
@@ -60,14 +67,94 @@ get_rc_file() {
 }
 
 patch_rc() {
-  local rc
-  rc=$(get_rc_file)
   local marker="$1"
   local block="$2"
+  local rc
+  rc=$(get_rc_file)
+  touch "$rc"
   if ! grep -q "$marker" "$rc" 2>/dev/null; then
-    printf "\n%s\n" "$block" >> "$rc"
-    success "Patched $rc"
+    printf '\n%s\n' "$block" >> "$rc"
+    success "Patched $(basename "$rc")"
   else
     info "$(basename "$rc") already patched — skipping"
   fi
+}
+
+# ── AI coding assistant installers ─────────────────────────────────────────
+# Both tools are npm globals — identical install on macOS, Linux, and Windows.
+install_ai_coding_tools() {
+  header "AI coding assistants (optional)"
+  printf '    Claude Code and OpenAI Codex are terminal-native AI coding tools.\n'
+  printf '    They work inside your projects and understand your code.\n\n'
+
+  # Claude Code
+  if ! step_done "ai_claude_code"; then
+    ask "Install Claude Code (Anthropic)? (y/N):"
+    read -r _claude_ans
+    if [[ "$_claude_ans" =~ ^[Yy]$ ]]; then
+      if has claude; then
+        success "Claude Code already installed"
+      else
+        info "Installing Claude Code..."
+        if npm install -g @anthropic-ai/claude-code; then
+          success "Claude Code installed — run 'claude' in any project folder"
+          INSTALLED_TOOLS+=("claude-code")
+        else
+          warn "Claude Code install failed — run 'npm install -g @anthropic-ai/claude-code' manually later."
+        fi
+      fi
+    else
+      info "Skipping Claude Code."
+    fi
+    mark_done "ai_claude_code"
+  fi
+
+  # OpenAI Codex
+  if ! step_done "ai_codex"; then
+    ask "Install OpenAI Codex CLI? (y/N):"
+    read -r _codex_ans
+    if [[ "$_codex_ans" =~ ^[Yy]$ ]]; then
+      if has codex; then
+        success "Codex CLI already installed"
+      else
+        info "Installing OpenAI Codex CLI..."
+        if npm install -g @openai/codex; then
+          success "Codex CLI installed — run 'codex' in any project folder"
+          INSTALLED_TOOLS+=("codex-cli")
+        else
+          warn "Codex CLI install failed — run 'npm install -g @openai/codex' manually later."
+        fi
+      fi
+    else
+      info "Skipping OpenAI Codex CLI."
+    fi
+    mark_done "ai_codex"
+  fi
+}
+
+# ── Installed tools tracker (populated by platform scripts) ────────────────
+INSTALLED_TOOLS=()
+
+# ── Summary ────────────────────────────────────────────────────────────────
+print_summary() {
+  local sep="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  printf '\n%s\n' "${BOLD}${GREEN}${sep}${RESET}"
+  printf '%s\n'   "${BOLD}${GREEN}  🎉 devkit setup complete!${RESET}"
+  printf '%s\n\n' "${BOLD}${GREEN}${sep}${RESET}"
+
+  if [ "${#INSTALLED_TOOLS[@]}" -gt 0 ]; then
+    printf '%s\n' "${CYAN}  Installed this run:${RESET}"
+    for tool in "${INSTALLED_TOOLS[@]}"; do
+      printf '    %s %s\n' "${GREEN}✓${RESET}" "$tool"
+    done
+    printf '\n'
+  fi
+
+  printf '%s\n' "${CYAN}  Next steps:${RESET}"
+  printf '    → Restart your terminal (or source your shell rc) for all tools to load\n'
+  printf '    → Run %s to authenticate with GitHub\n' "${BOLD}gh auth login${RESET}"
+  printf '    → Run %s to activate Node.js\n' "${BOLD}nvm use --lts${RESET}"
+  printf '    → Run %s or %s inside a project to start coding with AI\n' "${BOLD}claude${RESET}" "${BOLD}codex${RESET}"
+  printf '\n%s ~/.devkit_state\n' "${CYAN}  State file:${RESET}"
+  printf '  To reset and start fresh: %s\n\n' "${BOLD}bash scripts/install.sh --reset${RESET}"
 }

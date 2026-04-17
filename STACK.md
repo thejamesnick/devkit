@@ -96,6 +96,27 @@ Chosen over alternatives because:
 
 ---
 
+## AI Coding Assistants
+
+Both tools are optional extras added at the end of the flow, after everything else is set up.
+
+| Tool | Package | How |
+|------|---------|-----|
+| Claude Code | `@anthropic-ai/claude-code` | `npm install -g` |
+| OpenAI Codex CLI | `@openai/codex` | `npm install -g` |
+
+Why npm globals:
+- Node is already installed by the time we get here (core_tools step)
+- Same install command on macOS, Linux, and Windows — no platform logic needed
+- Both tools are officially distributed via npm
+
+Why optional and warn-on-fail:
+- A failed AI tool install should never block the rest of the dev environment
+- Not every dev wants or needs an AI coding tool
+- Each tool is prompted independently so you can take one without the other
+
+---
+
 ## Phase 2+ Ideas (not now)
 
 - Web UI / dashboard
